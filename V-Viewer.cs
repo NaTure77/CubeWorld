@@ -38,6 +38,8 @@ namespace VirtualCam
 			UpdateBuffer();
 			InitDraw();
         }
+
+        int qualityLevel = 0;
         public Viewer(Camera cam, XYZ camSize)
         {
             this.SetStyle(ControlStyles.DoubleBuffer, true);
@@ -68,19 +70,27 @@ namespace VirtualCam
            this.KeyUp += new KeyEventHandler(KeyUpEvent);
 		   
 		   
-		   cam.Resize(camSize.x/8,camSize.y,camSize.z/8);
-				UpdateBufferSize(camSize); 
+		   cam.Resize(camSize.x/4,camSize.y,camSize.z/4);
+		   UpdateBufferSize(camSize); 
             InputManager.Regist(Keys.Escape, new Func(() => { isPaused = !isPaused; }), false);
             InputManager.Regist(Keys.M, new Func(() => 
-			{ 
-				cam.Resize(camSize.x/2,camSize.y,camSize.z/2);
-				UpdateBufferSize(camSize); 
+			{
+                if (qualityLevel > -2)
+                {
+                    cam.Resize(camSize.x / 2, camSize.y, camSize.z / 2);
+                    UpdateBufferSize(camSize);
+                    qualityLevel--;
+                }
 			}), false);
 			
             InputManager.Regist(Keys.N, new Func(() => 
-			{ 
-				cam.Resize(camSize.x*2,camSize.y,camSize.z*2);
-				UpdateBufferSize(camSize);
+			{
+                if (qualityLevel < 2)
+                {
+                    cam.Resize(camSize.x * 2, camSize.y, camSize.z * 2);
+                    UpdateBufferSize(camSize);
+                    qualityLevel++;
+                }
 			}), false);
 			
 			//graphics.CompositingMode = CompositingMode.SourceCopy;
