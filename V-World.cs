@@ -361,56 +361,83 @@ namespace VirtualCam
         }
 		public void MakeMirror(XYZ pos)
 		{
-			for (int w = -1; w < 21; w++)
+			XYZ temp = new XYZ(pos);
+			Block block;
+ 			for (int w = -1; w < 21; w++)
             {
                 for (int h = -1; h < 11; h++)
                 {
-                    //Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].code = (byte)1;
-                    Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].touchable = true;
-                    Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].OnRendered = renderer_block;
-                    Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].color.Set(100,100,255);
+					temp.Set(pos.x + w, pos.y - 5, frameSize.z / 2 - h).Rem(worldSize);
+					//Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].code = (byte)1;
+					block = GetBlock(temp);
+					block.touchable = true;
+					block.OnRendered = renderer_block;
+					block.color.Set(100, 100, 255);
+					//Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].touchable = true;
+                    //Map[pos.x + w, pos.y-5, frameSize.z / 2 - h].OnRendered = renderer_block;
+                    //Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].color.Set(100,100,255);
                 }
             }
             for (int w = -1; w < 21; w++)
             {
                 for (int h = -1; h < 11; h++)
                 {
-                    //Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].code = (byte)1;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].touchable = true;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].OnRendered = renderer_block;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].color.Set(255,100,100);
-                }
+					temp.Set(pos.x + w, pos.y + 5, frameSize.z / 2 - h).Rem(worldSize);
+					block = GetBlock(temp);
+					block.touchable = true;
+					block.OnRendered = renderer_block;
+					block.color.Set(255, 100, 100);
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].code = (byte)1;
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].touchable = true;
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].OnRendered = renderer_block;
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].color.Set(255,100,100);
+				}
             }
 
             for (int w = 0; w < 20; w++)
             {
                 for (int h = 0; h < 10; h++)
                 {
-                    //Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].code = (byte)14;
-                    Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].touchable = true;
-                    Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].OnRendered = renderer_mirror;
-                    Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].color.Set(0, 0, 0);
-                }
+					temp.Set(pos.x + w, pos.y - 5, frameSize.z / 2 - h).Rem(worldSize);
+					block = GetBlock(temp);
+					block.touchable = true;
+					block.OnRendered = renderer_mirror;
+					block.color.Set(0, 0, 0);
+					//Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].code = (byte)14;
+					//Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].touchable = true;
+					// Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].OnRendered = renderer_mirror;
+					// Map[pos.x + w, pos.y - 5, frameSize.z / 2 - h].color.Set(0, 0, 0);
+				}
             }
             for (int w = 0; w < 20; w++)
             {
                 for (int h = 0; h < 10; h++)
                 {
-                    //Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].code = (byte)14;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].touchable = true;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].OnRendered = renderer_mirror;
-                    Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].color.Set(0, 0, 0);
-                }
+					temp.Set(pos.x + w, pos.y + 5, frameSize.z / 2 - h).Rem(worldSize);
+					block = GetBlock(temp);
+					block.touchable = true;
+					block.OnRendered = renderer_mirror;
+					block.color.Set(0, 0, 0);
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].code = (byte)14;
+					//Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].touchable = true;
+					// Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].OnRendered = renderer_mirror;
+					// Map[pos.x + w, pos.y + 5, frameSize.z / 2 - h].color.Set(0, 0, 0);
+				}
             }
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
                     for (int k = 0; k < 4; k++)
                     {
-                       // Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].code = (byte)1;
-                        Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].touchable = true;
-                        Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].OnRendered = renderer_block;
-                        Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].color.Set((byte)0);
-                    }
+						temp.Set(pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k).Rem(worldSize);
+						block = GetBlock(temp);
+						block.touchable = true;
+						block.OnRendered = renderer_block;
+						block.color.Set(80,80,80);
+						// Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].code = (byte)1;
+						//Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].touchable = true;
+						//Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].OnRendered = renderer_block;
+						//Map[pos.x + 10 - i, pos.y - j, frameSize.z / 2 - k].color.Set((byte)0);
+					}
         }
 		
 		public void MakeCone(XYZ_d pos, int radius, int height)

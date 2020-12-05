@@ -24,10 +24,11 @@ namespace VirtualCam
 			World world = new World(new XYZ(300,300,300));
 			Camera camera = new Camera(camSize,new XYZ_d(280,280,147).Mul(world.frameLength),world);
             Controller controller = new Controller(world, camera);
-
-            XYZ t = new XYZ();
+            
+            XYZ t = new XYZ(280, 280, 147);
+            world.MakeMirror(t);
             world.GetFrameIndex(new XYZ_d(100, 100, 120).Mul(world.frameLength), t);
-            //world.MakeMirror(t);
+            
             //world.MakeSphere(t,30,14, new XYZ_b(10));
 			world.MakePenetration(t);
 			t.Add(100,100,-50);
