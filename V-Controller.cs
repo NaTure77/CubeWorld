@@ -8,7 +8,6 @@ namespace VirtualCam
 	class Controller
 	{
 		private World world;
-		private Camera camera;
 		private XYZ_d Position;
 		XYZ_d scalaVector = new XYZ_d();
 		XYZ halfBodySize = new XYZ(5,5,10);
@@ -22,20 +21,19 @@ namespace VirtualCam
 		{
             instance = this;
 			world = w; 
-			camera = c;
-			Position = camera.GetPosition();
-			RegistKey();
+			Position = c.GetPosition();
+			RegistKey(c);
 			renderer = world.renderer_block;
 		}
-		void RegistKey()
+		void RegistKey(Camera camera)
 		{
-            InputManager.Regist(Keys.W, new Func(() => { Move(0, 1, 0); }),true);
-            InputManager.Regist(Keys.S, new Func(() => { Move(0, -1, 0); }), true);
-            InputManager.Regist(Keys.D, new Func(() => { Move(1, 0, 0); }), true);
-            InputManager.Regist(Keys.A, new Func(() => { Move(-1, 0, 0); }), true);
-            InputManager.Regist(Keys.E, new Func(() => { Shoot(new XYZ_b(255,0,0)); }), false);
-            InputManager.Regist(Keys.R, new Func(() => { Shoot(new XYZ_b(0,255,0)); }), false);
-            InputManager.Regist(Keys.T, new Func(() => { Shoot(new XYZ_b(0,0,255)); }), false);
+            InputManager.Regist(Keys.W, new Func(() => { Move(0, 1, 0,camera.GetCursorPos().x); }),true);
+            InputManager.Regist(Keys.S, new Func(() => { Move(0, -1, 0,camera.GetCursorPos().x); }), true);
+            InputManager.Regist(Keys.D, new Func(() => { Move(1, 0, 0,camera.GetCursorPos().x); }), true);
+            InputManager.Regist(Keys.A, new Func(() => { Move(-1, 0, 0,camera.GetCursorPos().x); }), true);
+            InputManager.Regist(Keys.E, new Func(() => { Shoot(new XYZ_b(255,0,0),camera.rayDelta); }), false);
+            InputManager.Regist(Keys.R, new Func(() => { Shoot(new XYZ_b(0,255,0),camera.rayDelta); }), false);
+            InputManager.Regist(Keys.T, new Func(() => { Shoot(new XYZ_b(0,0,255),camera.rayDelta); }), false);
            // InputManager.Regist(Keys.C, new Func(() => { Move(0, 0, 1); }), true);
            // InputManager.Regist(Keys.V, new Func(() => { Move(0, 0, -1); }), true);
             InputManager.Regist(Keys.V, new Func(() => { if (isJumpable) { Vector.z = -80; isJumpable = false; } }), true);
@@ -59,41 +57,72 @@ namespace VirtualCam
             InputManager.Regist(Keys.D0, new Func(() => { renderer = world.renderer_block; }), false);
             InputManager.Regist(Keys.D1, new Func(() => { renderer = world.renderer_air; }), false);
             InputManager.Regist(Keys.D2, new Func(() => { renderer = world.renderer_mirror; }), false);
-            InputManager.Regist(Keys.Space, new Func(() => { AddBlock(); }), false);
-            InputManager.Regist(Keys.X, new Func(() => { DeleteBlock(); }), false);
+            InputManager.Regist(Keys.Space, new Func(() => { AddBlock(camera.addFrameIndex,camera.PositionIndex); }), false);
+            InputManager.Regist(Keys.X, new Func(() => { DeleteBlock(camera.deleteFrameIndex); }), false);
+			
+			InputManager.Regist(Keys.M, new Func(() => 
+			{
+                if (camera.viewer.qualityLevel > -2)
+                {
+                    camera.Resize(camera.camSize.x / 2, camera.camSize.y, camera.camSize.z / 2);
+                    camera.viewer.UpdateBufferSize(camera.camSize);
+                    camera.viewer.qualityLevel--;
+                }
+			}), false);
+            InputManager.Regist(Keys.N, new Func(() => 
+			{
+                if (camera.viewer.qualityLevel < 2)
+                {
+                    camera.Resize(camera.camSize.x * 2, camera.camSize.y, camera.camSize.z * 2);
+                    camera.viewer.UpdateBufferSize(camera.camSize);
+                    camera.viewer.qualityLevel++;
+                }
+			}), false);
+			camera.viewer.SetKeyDownEvent((sender,e)=>
+			{
+				InputManager.AddLongClick(e.KeyCode);
+				InputManager.DoOneClick(e.KeyCode);
+			});
+			
+			camera.viewer.SetKeyUpEvent((sender,e)=>
+			{
+				InputManager.SubLongClick(e.KeyCode);
+			});
+			
+            
 
         }
 		
 		public byte color = 6;
         public byte code = 3;
 		public Func<XYZ_d, XYZ, XYZ, int, bool> renderer;
-		public void AddBlock()
+		public void AddBlock(XYZ blockPosition, XYZ positionIndex)
 		{
-            XYZ pos = camera.PositionIndex;
-            if (world.IsInFrame(camera.addFrameIndex) && 
-                !camera.addFrameIndex.Equal(pos) && !camera.addFrameIndex.Equal(pos.x,pos.y,pos.z+1))
+           // XYZ pos = camera.PositionIndex;
+            if (world.IsInFrame(blockPosition) && 
+                !blockPosition.Equal(positionIndex) && !blockPosition.Equal(positionIndex.x,positionIndex.y,positionIndex.z+1))
 			{
                 //world.SetBlock(camera.addFrameIndex, code);
-                world.SetBlock(camera.addFrameIndex,true);
-				world.SetRender(camera.addFrameIndex,renderer);
-                world.SetColor(camera.addFrameIndex,new XYZ_b((byte)(color * 25)));
+                world.SetBlock(blockPosition,true);
+				world.SetRender(blockPosition,renderer);
+                world.SetColor(blockPosition,new XYZ_b((byte)(color * 25)));
 			}
 		}
 		
-		public void DeleteBlock()
+		public void DeleteBlock(XYZ blockPosition)
 		{
-			if(world.IsInFrame(camera.deleteFrameIndex))
+			if(world.IsInFrame(blockPosition))
 			{
-				world.SetBlock(camera.deleteFrameIndex,false);
-				world.SetColor(camera.deleteFrameIndex,0,0,0);
-				world.SetRender(camera.deleteFrameIndex,world.renderer_air);
+				world.SetBlock(blockPosition,false);
+				world.SetColor(blockPosition,0,0,0);
+				world.SetRender(blockPosition,world.renderer_air);
 			}
 		}
 
-		public void Move(XYZ_d vector){Move(vector.x,vector.y,vector.z);}
-		public void Move(double x, double y, double z)
+		public void Move(XYZ_d vector, double degree){Move(vector.x,vector.y,vector.z, degree);}
+		public void Move(double x, double y, double z, double degree)
 		{
-			Spin_matrix_z(x,y,camera.GetCursorPos().x,scalaVector);
+			Spin_matrix_z(x,y,degree,scalaVector);
 			scalaVector.Mul(speed);
             //scalaVector.Set(camera.rayDelta).Mul(y,y,y).Add(camera.basisX.x * x,camera.basisX.y * x,0).Mul(speed);
 			
@@ -124,12 +153,14 @@ namespace VirtualCam
             bool b = world.isFrameEnabled(pos);
             return a || b;
         }
-        public void CrushFrame(int scale)
+		
+		//camera.PositionIndex
+        public void CrushFrame(int scale, XYZ positionIndex)
         {
             XYZ temp = Vector.ToXYZ();
             temp.Div((int)(temp.Length() / (scale / 4 * 3)));
-            XYZ brokePos = new XYZ(camera.PositionIndex).Sub(temp);
-            XYZ lightPos = new XYZ(camera.PositionIndex);
+            XYZ brokePos = new XYZ(positionIndex).Sub(temp);
+            XYZ lightPos = new XYZ(positionIndex);
             int maxScale = 60;
             if (scale > maxScale) scale = maxScale;
             int lightScale = scale + 2;
@@ -204,9 +235,9 @@ namespace VirtualCam
             }
         }
 
-        void Shoot(XYZ_b color)
+        void Shoot(XYZ_b color, XYZ_d rayDelta)
         {
-            XYZ_d delta = new XYZ_d(camera.rayDelta);
+			XYZ_d delta = new XYZ_d(rayDelta);
             XYZ_d lpos = new XYZ_d(delta).Mul(world.frameLength * 2).Add(Position);
             XYZ frameIndex = new XYZ();
             world.GetFrameIndex(lpos, frameIndex);

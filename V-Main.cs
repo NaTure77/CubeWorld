@@ -34,11 +34,8 @@ namespace VirtualCam
 			t.Add(100,100,-50);
             //world.MakeSphere(t,30,1, new XYZ_b(100));
             world.MakeCone(new XYZ_d(280,280,151),35,60);
-
-           
-           
-
-            SetForegroundWindow(camera.viewer.Handle);
+			
+			SetForegroundWindow(camera.viewer.Handle);
             Application.Run(camera.viewer);
         }
 	}

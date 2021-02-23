@@ -11,161 +11,72 @@ namespace VirtualCam
     {
         Brush brush = new SolidBrush(Color.FromArgb(255,0,0,0));
         Graphics graphics;
-       // int pixelSize;
-        XY<int> screenSize;
         private System.ComponentModel.IContainer components;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Timer timer2;
         Bitmap _backBuffer;
-        Bitmap _backBuffer2;
-        Bitmap _backBufferTemp;
-        Camera cam;
-        Rectangle rect;
-        protected override void OnPaintBackground(PaintEventArgs pevent) { }
-        protected override void Dispose(bool disposing)
-        
+        //protected override void OnPaintBackground(PaintEventArgs pevent) { }
+        /* protected override void Dispose(bool disposing)
         {
             if (disposing)
                 if (components != null)
                     components.Dispose();
             base.Dispose(disposing);
-        }
+        } */
         public void UpdateBufferSize(XYZ camSize)
         {
             _backBuffer = new Bitmap(camSize.x, camSize.z, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            _backBuffer2 = new Bitmap(camSize.x, camSize.z, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-			InitDraw();
-			UpdateBuffer();
-			InitDraw();
+			Graphics.FromImage(_backBuffer).Clear(Color.White);
         }
 
-        int qualityLevel = 0;
+        public int qualityLevel = 0;
+		bool isPaused = false;
         public Viewer(Camera cam, XYZ camSize)
         {
+			//뷰어 세팅
             this.SetStyle(ControlStyles.DoubleBuffer, true);
             this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             this.SetStyle(ControlStyles.UserPaint, true);
-            this.cam = cam;
-            screenSize = new XY<int>(camSize.x,camSize.z);
-            Width = screenSize.x;
-            Height = screenSize.y;
-            rect = new Rectangle(0,0,Width,Height);
+            Width = camSize.x;
+            Height = camSize.z;
             graphics = CreateGraphics();
-           // this.pixelSize = pixelSize;
             components = new System.ComponentModel.Container();
             UpdateBufferSize(camSize);
 
-            timer1 = new System.Windows.Forms.Timer(this.components);
-            
+			//업데이트 함수 추가
+            timer1 = new System.Windows.Forms.Timer(components);
             timer1.Interval = 1;
-            timer1.Tick += new System.EventHandler(timer1_Tick);
+            timer1.Tick += new System.EventHandler((sender,e)=>
+			{
+				if (isPaused) return;
+				if (InputManager.currentFuncs != null)
+				{
+				   InputManager.DoLogic();                
+				}         
+				cam.Spin_XZAxis5();
+				Controller.instance.Falling();
+				DrawImage(cam.MakeImage());
+			});
             timer1.Enabled = true;
 
-            //timer2 = new System.Windows.Forms.Timer(this.components);
-            //timer2.Interval = 20;
-            //timer2.Tick += new System.EventHandler(timer2_Tick);
-            //timer2.Enabled = true;
-
-            this.KeyDown += new KeyEventHandler(KeyDownEvent);
-           this.KeyUp += new KeyEventHandler(KeyUpEvent);
-		   
-		   
-		   cam.Resize(camSize.x/4,camSize.y,camSize.z/4);
-		   UpdateBufferSize(camSize); 
             InputManager.Regist(Keys.Escape, new Func(() => { isPaused = !isPaused; }), false);
-            InputManager.Regist(Keys.M, new Func(() => 
-			{
-                if (qualityLevel > -2)
-                {
-                    cam.Resize(camSize.x / 2, camSize.y, camSize.z / 2);
-                    UpdateBufferSize(camSize);
-                    qualityLevel--;
-                }
-			}), false);
+            
 			
-            InputManager.Regist(Keys.N, new Func(() => 
-			{
-                if (qualityLevel < 2)
-                {
-                    cam.Resize(camSize.x * 2, camSize.y, camSize.z * 2);
-                    UpdateBufferSize(camSize);
-                    qualityLevel++;
-                }
-			}), false);
-			
-			//graphics.CompositingMode = CompositingMode.SourceCopy;
+			cam.Resize(camSize.x/4,camSize.y,camSize.z/4);
+		    UpdateBufferSize(camSize); 
         }
-        bool isPaused = false;
-        DateTime startTime = DateTime.Now;
-        DateTime current;
-        double dt = 1 / 50d;
-        double accumulateTime = 0.2f;
-        void timer1_Tick(object sender, System.EventArgs e)
-        {
-            if (isPaused) return;
-            startTime = DateTime.Now;
-            //InitDraw();
-            if (InputManager.currentFuncs != null)
-            {
-               InputManager.DoLogic();                
-            }         
-            //if (accumulateTime > 0.05f) accumulateTime = 0.05f;
-            //while(accumulateTime > 0)
-            //{
-            //    cam.Spin_XZAxis5();
-            //    Controller.instance.Falling();
-            //    accumulateTime -= dt;
-            //}
-            //current = DateTime.Now;
-            //accumulateTime = current.Subtract(startTime).TotalSeconds;
+		
+		//키입력 이벤트 추가 함수
+		public void SetKeyDownEvent(Action<object, KeyEventArgs> func)
+		{
+			this.KeyDown += new KeyEventHandler(func);
+		}
+		public void SetKeyUpEvent(Action<object, KeyEventArgs> func)
+		{
+			this.KeyUp += new KeyEventHandler(func);
+		}
 
-            cam.Spin_XZAxis5();
-           // Console.WriteLine(cam.PositionIndex.x + " " + cam.PositionIndex.y + " " + cam.PositionIndex.z);
-            Controller.instance.Falling();
-            current = DateTime.Now;
-            Console.WriteLine(current.Subtract(startTime).TotalSeconds);
-            ParallelDraw(cam.MakeImage());
-            UpdateBuffer();
-            ShowImage();
-        }
-        void UpdateBuffer()
-        {
-            _backBufferTemp = _backBuffer2;
-            _backBuffer2 = _backBuffer;
-            _backBuffer = _backBufferTemp;
-        }
-        void timer2_Tick(object sender, System.EventArgs e)
-        {
-            ParallelDraw(cam.MakeImage());
-            UpdateBuffer();
-            ShowImage();
-        }
-        Graphics graphics2;
-        public void InitDraw()
-        {
-            graphics2 = Graphics.FromImage(_backBuffer);
-            graphics2.Clear(Color.White);
-        }
-        public void ShowImage()
-        {
-			
-            graphics.DrawImage(_backBuffer, rect);
-        }
-
-        public void KeyDownEvent(object sender, KeyEventArgs e)
-        {
-           // Console.WriteLine(e.KeyCode);
-            InputManager.AddLongClick(e.KeyCode);
-            InputManager.DoOneClick(e.KeyCode);
-
-        }
-        public void KeyUpEvent(object sender, KeyEventArgs e)
-        {
-            InputManager.SubLongClick(e.KeyCode);
-        }
-
-
-        public void ParallelDraw(XYZ_b[,] data)
+		//이미지를 화면에 그리는 함수
+        public void DrawImage(XYZ_b[,] data)
         {
             unsafe
             {
@@ -174,10 +85,8 @@ namespace VirtualCam
                 int bytesPerPixel = System.Drawing.Bitmap.GetPixelFormatSize(_backBuffer.PixelFormat) / 8;
                 int heightInPixels = bitmapData.Height;
                 int widthInPixels = bitmapData.Width;
-                //int widthInBytes = bitmapData.Width * bytesPerPixel;
                 byte* PtrFirstPixel = (byte*)bitmapData.Scan0;
 				
-				//byte*[,] currLArr = new byte*[,];
                 Parallel.For(0, heightInPixels, y =>
                 {
                     byte* currentLine = PtrFirstPixel + (y * bitmapData.Stride);
@@ -190,6 +99,7 @@ namespace VirtualCam
                 });
                 _backBuffer.UnlockBits(bitmapData);
             }
+			graphics.DrawImage(_backBuffer, 0,0,Width,Height);
         }
     }
 }

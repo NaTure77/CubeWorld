@@ -40,7 +40,6 @@ namespace VirtualCam
        
 		private int[,] lposDirectBoard;
         private XYZ_b[,] finalBoard;
-		int pixelSize = 1;
         public Camera(XYZ cs, XYZ_d cPos, World w)
 		{
 			camSize = cs;
@@ -108,9 +107,6 @@ namespace VirtualCam
 		public XYZ_d GetPosition(){return Position;}
 		public XY<double> GetCursorPos(){return cursor;}
         
-		
-		
-		Action<int, int, int> checkFrame;
 		public void Spin_XZAxis5()
 		{
 			position.Set(Position);
@@ -135,19 +131,7 @@ namespace VirtualCam
             world.GetFrameIndex(position,PositionIndex);//현재 위치를 박스 단위 위치로 변환
 			world.ConvertToInfinity(PositionIndex);
             world.ConvertToFramePos(PositionIndex,position);// 현재 위치를 현재 박스의 로컬 좌표로 전환
-			
-			checkFrame = (i,k,nextDir)=>
-			{
-			//if(block.code > 0)
-				{
-					frameBoard[i, k].Set(frameInk[i,k]);
-					perspBasisX[i,k].element[nextDir] -= perspBasisZ[i,k].element[nextDir];
-					perspBasisX[i,k].Sub(perspBasisX[i,k].element[nextDir]);
-					perspBasisX[i,k].element[nextDir] = perspBasisZ[i,k].element[nextDir];			
-					lposBoard[i, k].Set(perspBasisZ[i,k]).Mul(0.5).Sub(perspBasisX[i,k]).Mul(deltaArray[i,k]);
-					lposDirectBoard[i,k] = nextDir;
-				}
-			};
+
             Parallel.For(0,camSize.z,(int k) =>
 			{
                 Parallel.For(0,camSize.x,(int i) =>
